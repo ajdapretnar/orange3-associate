@@ -1,21 +1,20 @@
 
 import re
-from collections import defaultdict
 
 import numpy as np
 from scipy.sparse import issparse
 
 from Orange.data import Table
 from Orange.widgets import widget, gui, settings
-from Orange.widgets.visualize.owscatterplotgraph import OWScatterPlotGraph
 from Orange.widgets.widget import Input, Output
 
-from AnyQt.QtCore import Qt, QSize, pyqtSignal, QRectF, QSortFilterProxyModel
-from AnyQt.QtGui import (
-    QApplication, QStandardItem, QStandardItemModel, QMouseEvent, QPen, QBrush, QColor)
-from AnyQt.QtWidgets import QLabel, QTableView, QMainWindow, QGraphicsView, qApp
+from AnyQt.QtCore import Qt, QSize, pyqtSignal, QSortFilterProxyModel
+from AnyQt.QtGui import QStandardItem, QStandardItemModel, QPen, QBrush, QColor
+from AnyQt.QtWidgets import QTableView, QMainWindow, QGraphicsView, qApp, \
+    QApplication
 
-from orangecontrib.associate.fpgrowth import frequent_itemsets, OneHot, association_rules, rules_stats
+from orangecontrib.associate.fpgrowth import frequent_itemsets, OneHot, \
+    association_rules, rules_stats
 
 import pyqtgraph as pg
 
@@ -134,23 +133,6 @@ class OWAssociate(widget.OWWidget):
                 callback=lambda: self.autoFind and self.find_rules())
 
         vbox = gui.widgetBox(self.controlArea, 'Filter rules')
-
-        ## This is disabled because it's hard to make a scatter plot with
-        ## selectable spots. Options:
-        ## * PyQtGraph, which doesn't support selection OOTB (+is poorly
-        ##   contrived and under-documented);
-        ## * Orange.widgets.visualize.ScatterPlotGraph, which comes without
-        ##   any documentation or comprehensible examples of use whatsoever;
-        ## * QGraphicsView, which would work, but lacks graphing features,
-        ##   namely labels, axes, ticks.
-        ##
-        ## I don't feel like pursuing any of those right now, so I am letting
-        ## it to be figured out at a later date.
-        #~ button = self.scatter_button = gui.button(vbox, self, 'Scatter plot',
-                                                  #~ callback=self.show_scatter,
-                                                  #~ autoDefault=False)
-        #~ button.setDisabled(True)
-        #~ self.scatter = self.ScatterPlotWindow(self)
 
         box = gui.widgetBox(vbox, 'Antecedent')
         gui.lineEdit(box, self, 'filterKeywordsAntecedent', 'Contains:',
@@ -309,9 +291,6 @@ class OWAssociate(widget.OWWidget):
             item.setToolTip(tooltip)
             model.setHorizontalHeaderItem(col, item)
 
-        #~ # Aggregate rules by common (support,confidence) for scatterplot
-        #~ scatter_agg = defaultdict(list)
-
         # Find itemsets
         nRules = 0
         itemsets = {}
@@ -341,7 +320,7 @@ class OWAssociate(widget.OWWidget):
                         continue
                     if filterSearch and not isSizeMatch(len(left), len(right)):
                         continue
-                    left_str =  ', '.join(names[i] for i in sorted(left))
+                    left_str = ', '.join(names[i] for i in sorted(left))
                     right_str = ', '.join(names[i] for i in sorted(right))
                     if filterSearch and not isRegexMatch(left_str, right_str):
                         continue
@@ -366,7 +345,6 @@ class OWAssociate(widget.OWWidget):
                                      left_item,
                                      ARROW_ITEM.clone(),
                                      StandardItem(right_str, len(right))])
-                    #~ scatter_agg[(round(support / n_examples, 2), round(confidence, 2))].append((left, right))
                     nRules += 1
                     progress.advance()
 
@@ -398,10 +376,6 @@ class OWAssociate(widget.OWWidget):
         self.nSelectedExamples = 0
         self._is_running = False
 
-        #~ self.scatter_agg = scatter_agg
-        #~ self.scatter_button.setDisabled(not nRules)
-        #~ if self.scatter.isVisible():
-            #~ self.show_scatter()
 
     class ScatterPlotWindow(QMainWindow):
 
@@ -466,12 +440,12 @@ class OWAssociate(widget.OWWidget):
             self.lastClicked = []
             scatter.sigClicked.connect(self.clicked)
 
-        def clicked(self, plot, points):
+        def clicked(self, points):
             for p in self.lastClicked:
                 p.resetPen()
             for p in points:
                 p.setPen(self.plot.SELECTED_PEN)
-            lastClicked = points
+            self.lastClicked = points
 
         def sizeHint(self, hint=QSize(400, 400)):
             return hint
